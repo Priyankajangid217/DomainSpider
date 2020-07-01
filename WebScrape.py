@@ -26,7 +26,7 @@ def requestQuery():
     query = input('Enter your search term: ')
     if query=='':
         sys.exit(1)
-    searchResults=int(input('Enter Results to be shown per Search: '))
+    searchResults=int(input('Enter Results to be shown per Search (Max=100): '))
     totalResults = searchResults
     queryCheck(query)
 
@@ -60,7 +60,7 @@ def queryCheck(query):
     Search(query, queryFile1, queryFile2)
 
 def Search(query, queryFile1, queryFile2):
-    global startedFrom, searchResults, totalResults, finalCount, lenLink, writeMethod
+    global startedFrom, searchResults, totalResults, finalCount, lenLink
     try:
         count=len(open(queryFile2,'r').readlines())
     except:
