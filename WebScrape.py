@@ -2,10 +2,16 @@ from googlesearch import search
 import msvcrt
 import sys
 currCount=0
-specialCase1=[':','*']
+finalCount=0
+specialCase1=[':','*','->']
 specialCase2=['->']
-startFrom=0
+urlList=['http:','https:','www.','/']
+urlList1=['->']
+urlList2=['//']
 startedFrom=0
+searchResults=0
+totalResults=0
+lenLink=0
 
 def Help():
     print('\nHow it Works:\nWebscrape uses google search API to search and extracts website links on search results for a search term.')
@@ -15,69 +21,83 @@ def Help():
     input()
 
 def requestQuery():
+    global searchResults, totalResults, lenLink
+    lenLink=0
     query = input('Enter your search term: ')
     if query=='':
         sys.exit(1)
+    searchResults=int(input('Enter Results to be shown per Search: '))
+    totalResults = searchResults
     queryCheck(query)
 
 def queryCheck(query):
-    global startFrom, startedFrom
+    global startedFrom
     print('Loading...')
     try:
         queryFile=query
         for specialChar in specialCase1:
             queryFile=queryFile.replace(specialChar,'')
-        queryFile1=queryFile+'-searchCache.txt'
-        queryFile2=queryFile+'-Webscrapped.txt'
+        queryFile1=queryFile+' searchCache.txt'
+        queryFile2=queryFile+' Webscrapped.txt'
         lastSearch= open(queryFile1,'r')
         print('\nPrevious Search Found!\nPress Enter to Continue from Previous Search or Press Space to start over')
         if msvcrt.getch()!=b' ':
             print('Loading...')
-            startFrom=int(lastSearch.readline())
-            startedFrom=startFrom+1
-            lastSearch.close()
+            startedFrom=int(lastSearch.readline())
         else:
             print('Loading...')
-            startFrom=0
-            startedFrom+=1
+            startedFrom=0
+            pastResults= open(queryFile2,'w')
+            pastResults.truncate(0)
+            pastResults.close()
+        lastSearch.close()
     except:
-        startFrom=0
-        startedFrom+=1
+        startedFrom = 0
     if any(urlParts in query for urlParts in specialCase2):
         queryList=query.split('->')
         query=queryList[0]
-        startFrom=int(queryList[1])
-        startedFrom=startFrom+1
+        startedFrom=int(queryList[1])
     Search(query, queryFile1, queryFile2)
 
 def Search(query, queryFile1, queryFile2):
-    global startFrom, startedFrom, searchResults, totalResults, currCount
+    global startedFrom, searchResults, totalResults, finalCount, lenLink, writeMethod
     try:
         count=len(open(queryFile2,'r').readlines())
     except:
         count=0
     links = []
-    for link in search(query, tld="co.in", start=startFrom, num=searchResults, stop=searchResults, pause=5):
+    for link in search(query, tld="co.in", start=startedFrom, num=searchResults, stop=searchResults, pause=5):
         links.append(link)
     print('Webscrapped Links:')
     if len(links)==0:
         print('No Links Found!')
-        print('\nWebscrapping tool wrote a total '+str(currCount)+' corpo links')
-        endedAt=startFrom+searchResults
+        print('\nWebscrapping tool wrote '+str(finalCount)+' links in the current session')
+        endedAt=startedFrom+len(links)
         storeResult(query, queryFile1, queryFile2, endedAt)
         requestQuery()
     corpos = open(queryFile2, 'a')
     for line in links:
         count+=1
-        currCount+=1
-        print('Webscrapped link for corpo '+str(count)+'->'+line)
-        corpos.write('Webscrapped link for corpo '+str(count)+'->'+line+'\n')
+        finalCount+=1
+
+        if any(urlParts in line for urlParts in urlList1):
+            line=line.split('->')[1]
+        if any(urlParts in line for urlParts in urlList2):
+            line=line.split('/')[2]
+        for urlParts in urlList:
+            line=line.replace(urlParts,'')
+            line=str(line.strip())
+
+        print(str(count)+'->'+line)
+        corpos.write(str(count)+'->'+line+'\n')
     corpos.close()
-    endedAt=startFrom+searchResults
-    print('\nWebscrapping Done!\nWritten '+str(totalResults)+' Results Webscrapped for the search term '+query+' from '+str(startedFrom)+' to '+str(endedAt))
-    print('Webscrapping tool wrote a total '+str(currCount)+' corpo links')
+    endedAt=startedFrom+len(links)
+    lenLink+=len(links)
+    print('\nWebscrape Log:\nSearched '+str(searchResults)+' results and found '+ str(len(links))+ ' link(s)')
+    print('Webscraped  '+str(totalResults)+' results for the search term '+query+' and found '+str(lenLink)+' link(s) written from line '+str(startedFrom+1)+' to '+str(endedAt))
+    print('Webscrapping tool wrote '+str(finalCount)+' link(s) in the current session')
     storeResult(query, queryFile1, queryFile2, endedAt)
-    startFrom+=searchResults
+    startedFrom+=searchResults
     totalResults+=searchResults
     
     print('\nPress Space to Load Next Resutlts or Enter to Search Again')
@@ -100,7 +120,5 @@ userInput=msvcrt.getch()
 if userInput==b'h':
     Help()
 else:
-    searchResults=int(input('Enter Results to be shown per Search: '))
-    totalResults=searchResults
     requestQuery()
 
