@@ -1,6 +1,5 @@
 from googlesearch import search 
 import msvcrt
-import sys
 currCount=0
 finalCount=0
 specialCase1=[':','*','->']
@@ -25,7 +24,7 @@ def requestQuery():
     lenLink=0
     query = input('Enter your search term: ')
     if query=='':
-        sys.exit(1)
+        exit()
     searchResults=int(input('Enter Results to be shown per Search (Max=100): '))
     totalResults = searchResults
     queryCheck(query)
