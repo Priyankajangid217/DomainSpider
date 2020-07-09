@@ -63,7 +63,6 @@ def queryCheck(query):
 
 def Search(query, queryFile1, queryFile2):
     global startedFrom, searchResults, totalResults, finalCount, lenLink, uniqLenLink
-    lenLink=0
     uniqLenLink=0
     try:
         count=len(open(queryFile2,'r').readlines())
